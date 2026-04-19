@@ -208,8 +208,21 @@
                 
                 <div>
                     <label class="block text-xs font-medium text-gray-400 mb-1">{{ __('quiz.question_audio') ?? 'Audio (optional)' }}</label>
-                    <input type="file" name="question_audio" accept="audio/*"
-                           class="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-xl text-white text-sm file:mr-4 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-medium file:bg-primary/20 file:text-primary-light hover:file:bg-primary/30 file:cursor-pointer cursor-pointer">
+                    <div class="space-y-2">
+                        <input type="file" name="question_audio" accept="audio/*"
+                               class="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-xl text-white text-sm file:mr-4 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-medium file:bg-primary/20 file:text-primary-light hover:file:bg-primary/30 file:cursor-pointer cursor-pointer">
+                        <div class="flex items-center gap-2">
+                            <button type="button" class="start-record-btn flex items-center gap-1.5 px-3 py-1.5 bg-danger/10 text-danger hover:bg-danger hover:text-white rounded-lg text-xs font-bold transition-colors">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/></svg>
+                                تسجيل صوت
+                            </button>
+                            <div class="recording-ui hidden flex items-center gap-2 px-3 py-1.5 bg-white/5 rounded-lg border border-danger/20">
+                                <span class="animate-pulse w-2.5 h-2.5 bg-danger rounded-full"></span>
+                                <span class="record-time text-xs text-danger font-mono font-bold w-10 text-center">00:00</span>
+                                <button type="button" class="stop-record-btn px-2 py-0.5 bg-danger hover:bg-red-600 text-white rounded text-[10px] transition-colors ml-2 rtl:ml-0 rtl:mr-2">إيقاف</button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 {{-- Correct answer for fill_blank --}}
@@ -590,5 +603,142 @@ function showAILoading() {
         </div>
     </div>
 </div>
+
+<script>
+// Image Preview Logic
+document.addEventListener('change', function(e) {
+    if (e.target.matches('input[type="file"][accept="image/*"]')) {
+        const file = e.target.files[0];
+        const input = e.target;
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                let previewContainer = input.parentElement.querySelector('.live-image-preview');
+                if (!previewContainer) {
+                    previewContainer = document.createElement('div');
+                    previewContainer.className = 'live-image-preview mb-2 mt-2 inline-flex items-center gap-2';
+                    input.parentElement.insertBefore(previewContainer, input);
+                }
+                previewContainer.innerHTML = `
+                    <div class="relative group">
+                        <img src="${evt.target.result}" class="h-14 w-auto rounded object-contain bg-dark/50 p-1 border border-white/10 shadow-sm" style="max-width:100px;">
+                        <button type="button" class="absolute -top-1.5 -right-1.5 bg-danger text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-all transform scale-90 hover:scale-110 shadow-md" onclick="removeImagePreview(this)">
+                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                        </button>
+                    </div>
+                `;
+            }
+            reader.readAsDataURL(file);
+        }
+    }
+});
+
+window.removeImagePreview = function(btn) {
+    const container = btn.closest('.live-image-preview');
+    const input = container.parentElement.querySelector('input[type="file"]');
+    if (input) input.value = '';
+    container.remove();
+}
+
+// Audio Recording & Preview Logic
+document.addEventListener('change', function(e) {
+    if (e.target.matches('input[type="file"][accept="audio/*"]')) {
+        const file = e.target.files[0];
+        const input = e.target;
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                let previewContainer = input.parentElement.querySelector('.live-audio-preview');
+                if (!previewContainer) {
+                    previewContainer = document.createElement('div');
+                    previewContainer.className = 'live-audio-preview mb-2 mt-2 inline-flex flex-col sm:flex-row items-center gap-2 w-full';
+                    input.parentElement.insertBefore(previewContainer, input);
+                }
+                previewContainer.innerHTML = `
+                    <div class="relative group flex-1 items-center bg-white/5 rounded-xl p-2 border border-white/10 flex gap-2">
+                        <audio controls class="h-8 flex-1 outline-none custom-audio min-w-[200px]" src="${evt.target.result}"></audio>
+                        <button type="button" class="px-2 py-1 bg-danger/10 text-danger hover:bg-danger hover:text-white rounded text-xs transition-colors shrink-0" onclick="removeAudioPreview(this)">حذف المقطع</button>
+                    </div>
+                `;
+            }
+            reader.readAsDataURL(file);
+        }
+    }
+});
+
+window.removeAudioPreview = function(btn) {
+    const container = btn.closest('.live-audio-preview');
+    const input = container.parentElement.querySelector('input[type="file"]');
+    if (input) input.value = '';
+    container.remove();
+}
+
+let mediaRecorder = null;
+let audioChunks = [];
+let recordTimer = null;
+let recordSeconds = 0;
+
+document.addEventListener('click', async function(e) {
+    if (e.target.closest('.start-record-btn')) {
+        const btn = e.target.closest('.start-record-btn');
+        const container = btn.parentElement;
+        const recordingUi = container.querySelector('.recording-ui');
+        const timeDisplay = container.querySelector('.record-time');
+        const fileInput = container.closest('.space-y-2').querySelector('input[type="file"][accept="audio/*"]');
+
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            mediaRecorder = new MediaRecorder(stream);
+            audioChunks = [];
+            
+            mediaRecorder.ondataavailable = event => {
+                audioChunks.push(event.data);
+            };
+
+            mediaRecorder.onstop = () => {
+                const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                const file = new File([audioBlob], "recorded_audio.webm", { type: 'audio/webm' });
+                
+                const dataTransfer = new DataTransfer();
+                dataTransfer.items.add(file);
+                
+                if (fileInput) {
+                    fileInput.files = dataTransfer.files;
+                    fileInput.dispatchEvent(new Event('change', { bubbles: true }));
+                }
+
+                stream.getTracks().forEach(track => track.stop());
+                
+                recordingUi.classList.add('hidden');
+                btn.classList.remove('hidden');
+                clearInterval(recordTimer);
+            };
+
+            mediaRecorder.start();
+            btn.classList.add('hidden');
+            recordingUi.classList.remove('hidden');
+            
+            recordSeconds = 0;
+            timeDisplay.textContent = '00:00';
+            recordTimer = setInterval(() => {
+                recordSeconds++;
+                const mins = String(Math.floor(recordSeconds / 60)).padStart(2, '0');
+                const secs = String(recordSeconds % 60).padStart(2, '0');
+                timeDisplay.textContent = `${mins}:${secs}`;
+            }, 1000);
+
+        } catch (err) {
+            alert('لم نتمكن من الوصول للميكروفون، يرجى منح الصلاحية من متصفحك.');
+            console.error('Mic error:', err);
+        }
+    }
+
+    if (e.target.closest('.stop-record-btn')) {
+        if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+            mediaRecorder.stop();
+        }
+    }
+});
+</script>
 @endsection
 
