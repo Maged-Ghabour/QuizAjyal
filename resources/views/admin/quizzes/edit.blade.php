@@ -98,12 +98,17 @@
                         </span>
                         <span class="text-xs text-gray-500">{{ $question->points }} {{ __('quiz.pts') }}</span>
                     </div>
-                    <form action="{{ route('admin.quizzes.questions.destroy', [$quiz, $question]) }}" method="POST" onsubmit="return confirm('{{ __('quiz.delete_question_confirm') }}')">
-                        @csrf @method('DELETE')
-                        <button type="submit" class="p-1.5 rounded-lg hover:bg-danger/10 text-gray-500 hover:text-danger transition-colors opacity-0 group-hover:opacity-100">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                        </button>
-                    </form>
+                    <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <a href="{{ route('admin.quizzes.questions.edit', [$quiz, $question]) }}" class="p-1.5 rounded-lg hover:bg-primary/10 text-gray-500 hover:text-primary transition-colors">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                        </a>
+                        <form action="{{ route('admin.quizzes.questions.destroy', [$quiz, $question]) }}" method="POST" class="inline" onsubmit="return confirm('{{ __('quiz.delete_question_confirm') }}')">
+                            @csrf @method('DELETE')
+                            <button type="submit" class="p-1.5 rounded-lg hover:bg-danger/10 text-gray-500 hover:text-danger transition-colors">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                            </button>
+                        </form>
+                    </div>
                 </div>
                 <p class="text-white text-sm mb-2">{{ $question->question_text }}</p>
 
@@ -243,10 +248,16 @@
                     </div>
                     <div id="pairs-container" class="space-y-2">
                         @for($i = 0; $i < 2; $i++)
-                        <div class="flex items-center gap-2 pair-row">
-                            <input type="text" name="pairs[{{ $i }}][left_text]" placeholder="{{ __('quiz.left_item') }}" class="flex-1 px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:ring-1 focus:ring-primary/50">
-                            <svg class="w-4 h-4 text-gray-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
-                            <input type="text" name="pairs[{{ $i }}][right_text]" placeholder="{{ __('quiz.right_item') }}" class="flex-1 px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:ring-1 focus:ring-primary/50">
+                        <div class="flex flex-col gap-2 pair-row bg-white/[0.02] p-3 rounded-lg border border-white/5">
+                            <div class="flex items-center gap-2">
+                                <input type="text" name="pairs[{{ $i }}][left_text]" placeholder="{{ __('quiz.left_item') }}" class="flex-1 px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:ring-1 focus:ring-primary/50">
+                                <svg class="w-4 h-4 text-gray-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
+                                <input type="text" name="pairs[{{ $i }}][right_text]" placeholder="{{ __('quiz.right_item') }}" class="flex-1 px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:ring-1 focus:ring-primary/50">
+                            </div>
+                            <div class="flex items-center gap-2 mr-6 rtl:ml-6 rtl:mr-0">
+                                <div class="flex-1"><input type="file" name="pairs[{{ $i }}][left_image]" accept="image/*" class="w-full text-xs text-gray-400 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-[10px] file:bg-white/10 file:text-white hover:file:bg-white/20"></div>
+                                <div class="flex-1"><input type="file" name="pairs[{{ $i }}][right_image]" accept="image/*" class="w-full text-xs text-gray-400 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-[10px] file:bg-white/10 file:text-white hover:file:bg-white/20"></div>
+                            </div>
                         </div>
                         @endfor
                     </div>
@@ -366,13 +377,19 @@ function addPair() {
     const leftPh  = @json(__('quiz.left_item'));
     const rightPh = @json(__('quiz.right_item'));
     const html = `
-        <div class="flex items-center gap-2 pair-row">
-            <input type="text" name="pairs[${pairCount}][left_text]" placeholder="${leftPh}" class="flex-1 px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:ring-1 focus:ring-primary/50">
-            <svg class="w-4 h-4 text-gray-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
-            <input type="text" name="pairs[${pairCount}][right_text]" placeholder="${rightPh}" class="flex-1 px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:ring-1 focus:ring-primary/50">
-            <button type="button" onclick="this.closest('.pair-row').remove()" class="p-1 text-gray-500 hover:text-danger">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-            </button>
+        <div class="flex flex-col gap-2 pair-row bg-white/[0.02] p-3 rounded-lg border border-white/5">
+            <div class="flex items-center gap-2">
+                <input type="text" name="pairs[${pairCount}][left_text]" placeholder="${leftPh}" class="flex-1 px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:ring-1 focus:ring-primary/50">
+                <svg class="w-4 h-4 text-gray-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
+                <input type="text" name="pairs[${pairCount}][right_text]" placeholder="${rightPh}" class="flex-1 px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:ring-1 focus:ring-primary/50">
+                <button type="button" onclick="this.parentElement.parentElement.remove()" class="p-1 text-gray-500 hover:text-danger">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+            <div class="flex items-center gap-2 mr-6 rtl:ml-6 rtl:mr-0">
+                <div class="flex-1"><input type="file" name="pairs[${pairCount}][left_image]" accept="image/*" class="w-full text-xs text-gray-400 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-[10px] file:bg-white/10 file:text-white hover:file:bg-white/20"></div>
+                <div class="flex-1"><input type="file" name="pairs[${pairCount}][right_image]" accept="image/*" class="w-full text-xs text-gray-400 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-[10px] file:bg-white/10 file:text-white hover:file:bg-white/20"></div>
+            </div>
         </div>`;
     container.insertAdjacentHTML('beforeend', html);
     pairCount++;

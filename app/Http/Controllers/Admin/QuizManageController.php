@@ -318,6 +318,15 @@ class QuizManageController extends Controller
     }
 
     /**
+     * Edit a question.
+     */
+    public function editQuestion(Quiz $quiz, Question $question): View
+    {
+        $question->load(['options', 'matchPairs', 'passageSubQuestions.options']);
+        return view('admin.quizzes.questions.edit', compact('quiz', 'question'));
+    }
+
+    /**
      * Store passage sub-questions from request.
      */
     private function storePassageSubQuestions(Request $request, Question $question): void
