@@ -128,7 +128,7 @@
                                     <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
                                 @endif
                                 @if($option->option_image)
-                                    <img src="{{ '/files/' . $option->option_image }}" class="w-4 h-4 rounded object-cover">
+                                    <img src="{{ Storage::url($option->option_image) }}" class="w-4 h-4 rounded object-cover">
                                 @endif
                                 {{ $option->label }}{{ $option->option_text ? ': '.$option->option_text : '' }}
                             </span>
@@ -252,7 +252,7 @@
                         <button type="button" onclick="addOption()" class="text-xs text-primary-light hover:text-primary transition-colors">{{ __('quiz.add_option') }}</button>
                     </div>
                     <div id="options-container" class="space-y-2">
-                        @for($i = 0; $i < 4; $i++)
+                        @for($i = 0; $i < 2; $i++)
                         <div class="flex flex-col gap-2 option-row bg-white/[0.02] p-3 rounded-lg border border-white/5">
                             <div class="flex items-center gap-2">
                                 <input type="text" name="options[{{ $i }}][label]" value="{{ chr(65 + $i) }}" class="w-12 px-2 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm text-center focus:outline-none focus:ring-1 focus:ring-primary/50">
@@ -399,7 +399,7 @@ function toggleQuestionFields() {
     }
 }
 
-let optionCount = 4;
+let optionCount = 2;
 function addOption() {
     const container = document.getElementById('options-container');
     const label = String.fromCharCode(65 + optionCount);
