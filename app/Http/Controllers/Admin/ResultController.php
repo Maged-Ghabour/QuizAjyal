@@ -101,4 +101,36 @@ class ResultController extends Controller
             'Content-Type' => 'text/csv',
         ]);
     }
+
+    /**
+     * Manually grade an essay question.
+     */
+    public function updateGrade(Request $request, QuizAttempt $attempt, \App\Models\AttemptAnswer $answer): \Illuminate\Http\RedirectResponse
+    {
+        $validated = $request->validate([
+            'points' => ['required', 'integer', 'min:0', 'max:' . $answer->question->points]
+        ]);
+
+        $newPoints = (int) $validated['points'];
+        $oldPoints = $answer->points_earned;
+
+        // Update answer
+        $answer->update([
+            'points_earned' => $newPoints,
+            'is_correct' => $newPoints > 0,
+        ]);
+
+        // Recalculate total score
+        $difference = $newPoints - $oldPoints;
+        $newTotalScore = $attempt->score + $difference;
+        $totalPoints = $attempt->total_points;
+        $percentage = $totalPoints > 0 ? round(($newTotalScore / $totalPoints) * 100) : 0;
+
+        $attempt->update([
+            'score' => $newTotalScore,
+            'percentage' => $percentage,
+        ]);
+
+        return redirect()->back()->with('success', 'تم تقييم الإجابة بنجاح! (Grade updated successfully)');
+    }
 }

@@ -127,6 +127,7 @@ return [
     'type_drag_drop' => 'سحب وإفلات',
     'type_true_false' => 'صح / خطأ',
     'type_passage' => 'قطعة قراءة',
+    'type_essay' => 'سؤال مقالي (عبارة)',
     'true' => 'صح',
     'false' => 'خطأ',
     'select_match' => 'اختر المطابقة...',

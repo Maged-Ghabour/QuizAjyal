@@ -115,7 +115,7 @@
                 @if($question->question_audio)
                     <div class="mt-2 mb-3">
                         <audio controls class="h-8 max-w-full">
-                            <source src="{{ Storage::url($question->question_audio) }}" type="audio/mpeg">
+                            <source src="{{ Storage::url($question->question_audio) }}">
                         </audio>
                     </div>
                 @endif
@@ -184,6 +184,7 @@
                             <option value="drag_drop" class="bg-dark" {{ old('type') == 'drag_drop' ? 'selected' : '' }}>{{ __('quiz.type_drag_drop') }}</option>
                             <option value="true_false" class="bg-dark" {{ old('type') == 'true_false' ? 'selected' : '' }}>{{ __('quiz.type_true_false') }}</option>
                             <option value="passage" class="bg-dark" {{ old('type') == 'passage' ? 'selected' : '' }}>{{ __('quiz.type_passage') }}</option>
+                            <option value="essay" class="bg-dark" {{ old('type') == 'essay' ? 'selected' : '' }}>سؤال مقالي (كتابة عبارة)</option>
                         </select>
                     </div>
                     <div id="points-wrapper">
@@ -359,6 +360,8 @@ function toggleQuestionFields() {
         if (document.getElementById('sub-questions-container').children.length === 0) {
             addSubQuestion();
         }
+    } else if (type === 'essay') {
+        // Essay only needs question text and points.
     }
 }
 

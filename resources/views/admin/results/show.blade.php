@@ -84,8 +84,8 @@
             <p class="text-white text-sm mb-3">{{ $answer->question->question_text }}</p>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-                <div class="p-3 rounded-xl {{ $answer->is_correct ? 'bg-success/5 border border-success/20' : 'bg-danger/5 border border-danger/20' }}">
-                    <span class="text-xs font-medium {{ $answer->is_correct ? 'text-success/60' : 'text-danger/60' }} block mb-1">{{ __('quiz.student_answer') }}</span>
+                <div class="p-3 rounded-xl {{ $answer->question->type === 'essay' ? 'bg-indigo-500/5 border border-indigo-500/20 col-span-full' : ($answer->is_correct ? 'bg-success/5 border border-success/20' : 'bg-danger/5 border border-danger/20') }}">
+                    <span class="text-xs font-medium {{ $answer->question->type === 'essay' ? 'text-indigo-400' : ($answer->is_correct ? 'text-success/60' : 'text-danger/60') }} block mb-1">{{ __('quiz.student_answer') }}</span>
                     <span class="text-gray-200">
                         @php
                             $studentAnswer = $answer->student_answer;
@@ -107,20 +107,37 @@
                         @endphp
                         {{ $studentAnswer ?: __('quiz.no_answer') }}
                     </span>
+
+                    @if($answer->question->type === 'essay')
+                        <div class="mt-4 pt-4 border-t border-white/10">
+                            <form action="{{ route('admin.results.grade', ['attempt' => $attempt->id, 'answer' => $answer->id]) }}" method="POST" class="flex gap-2 items-end">
+                                @csrf
+                                <div class="w-24">
+                                    <label class="block text-xs font-medium text-gray-400 mb-1">الدرجة (من {{ $answer->question->points }})</label>
+                                    <input type="number" name="points" min="0" max="{{ $answer->question->points }}" value="{{ $answer->points_earned }}" required class="w-full px-2 py-1.5 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:ring-1 focus:ring-primary">
+                                </div>
+                                <button type="submit" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 rounded-lg text-white text-xs font-bold transition-colors">
+                                    حفظ الدرجة
+                                </button>
+                            </form>
+                        </div>
+                    @endif
                 </div>
 
-                <div class="p-3 rounded-xl bg-success/5 border border-success/10">
-                    <span class="text-xs font-medium text-success/60 block mb-1">{{ __('quiz.correct_answer_label') }}</span>
-                    <span class="text-gray-200">
-                        @if(in_array($answer->question->type, ['mcq', 'image_choice']))
-                            {{ $answer->question->options->firstWhere('is_correct', true)?->option_text ?? $answer->question->correct_answer }}
-                        @elseif(in_array($answer->question->type, ['match', 'drag_drop']))
-                            {{ $answer->question->matchPairs->map(fn($p) => $p->left_text . ' → ' . $p->right_text)->implode(' | ') }}
-                        @else
-                            {{ $answer->question->correct_answer }}
-                        @endif
-                    </span>
-                </div>
+                @if($answer->question->type !== 'essay')
+                    <div class="p-3 rounded-xl bg-success/5 border border-success/10">
+                        <span class="text-xs font-medium text-success/60 block mb-1">{{ __('quiz.correct_answer_label') }}</span>
+                        <span class="text-gray-200">
+                            @if(in_array($answer->question->type, ['mcq', 'image_choice']))
+                                {{ $answer->question->options->firstWhere('is_correct', true)?->option_text ?? $answer->question->correct_answer }}
+                            @elseif(in_array($answer->question->type, ['match', 'drag_drop']))
+                                {{ $answer->question->matchPairs->map(fn($p) => $p->left_text . ' → ' . $p->right_text)->implode(' | ') }}
+                            @else
+                                {{ $answer->question->correct_answer }}
+                            @endif
+                        </span>
+                    </div>
+                @endif
             </div>
         </div>
     @endforeach

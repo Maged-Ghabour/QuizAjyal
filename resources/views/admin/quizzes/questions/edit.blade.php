@@ -54,7 +54,7 @@
                     @if($question->question_audio)
                         <div class="mb-2">
                             <audio controls class="h-8 max-w-full">
-                                <source src="{{ '/files/' . $question->question_audio }}" type="audio/mpeg">
+                                <source src="{{ '/files/' . $question->question_audio }}">
                             </audio>
                         </div>
                     @endif

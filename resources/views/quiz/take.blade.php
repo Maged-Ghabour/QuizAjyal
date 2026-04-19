@@ -78,7 +78,7 @@
                         @if($question->question_audio)
                             <div class="my-4">
                                 <audio controls class="w-full h-10 rounded-lg custom-audio">
-                                    <source src="{{ Storage::url($question->question_audio) }}" type="audio/mpeg">
+                                    <source src="{{ Storage::url($question->question_audio) }}">
                                     Your browser does not support the audio element.
                                 </audio>
                             </div>
