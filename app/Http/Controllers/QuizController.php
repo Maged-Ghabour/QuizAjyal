@@ -213,11 +213,12 @@ class QuizController extends Controller
         }
 
         return match ($question->type) {
-            'mcq'      => $this->gradeMcq($question, $studentAnswer),
-            'fill_blank'=> $this->gradeFillBlank($question, $studentAnswer),
-            'true_false'=> $this->gradeTrueFalse($question, $studentAnswer),
-            'drag_drop' => $this->gradeMatch($question, $studentAnswer),
-            default    => false,
+            'mcq'        => $this->gradeMcq($question, $studentAnswer),
+            'fill_blank' => $this->gradeFillBlank($question, $studentAnswer),
+            'true_false' => $this->gradeTrueFalse($question, $studentAnswer),
+            'drag_drop'  => $this->gradeMatch($question, $studentAnswer),
+            'word_order' => $this->gradeWordOrder($question, $studentAnswer),
+            default      => false,
         };
     }
 
@@ -277,4 +278,16 @@ class QuizController extends Controller
 
         return $allCorrect;
     }
+
+    /**
+     * Grade a word-order question — compare normalised strings.
+     */
+    private function gradeWordOrder(Question $question, mixed $answer): bool
+    {
+        $correct = preg_replace('/\s+/', ' ', mb_strtolower(trim($question->correct_answer ?? '')));
+        $student = preg_replace('/\s+/', ' ', mb_strtolower(trim((string) $answer)));
+
+        return $correct !== '' && $correct === $student;
+    }
 }
+

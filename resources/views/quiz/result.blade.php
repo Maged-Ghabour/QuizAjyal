@@ -92,7 +92,23 @@
                                         }
                                     }
                                 @endphp
-                                {{ $studentAnswer ?: __('quiz.no_answer') }}
+                                @if($answer->question->type === 'word_order')
+                                    @php $woW = preg_split('/\s+/', trim($studentAnswer ?? ''), -1, PREG_SPLIT_NO_EMPTY); @endphp
+                                    @if(count($woW))
+                                        <span class="flex flex-wrap gap-1.5">
+                                            @foreach($woW as $w)
+                                                <span class="px-2.5 py-1 rounded-lg text-xs font-bold
+                                                    {{ $answer->is_correct ? 'bg-success/15 border border-success/25 text-success' : 'bg-danger/10 border border-danger/20 text-danger/70' }}">
+                                                    {{ $w }}
+                                                </span>
+                                            @endforeach
+                                        </span>
+                                    @else
+                                        <span class="italic text-gray-500">{{ __('quiz.no_answer') }}</span>
+                                    @endif
+                                @else
+                                    {{ $studentAnswer ?: __('quiz.no_answer') }}
+                                @endif
                             </span>
                         </div>
                         @if(!$answer->is_correct)
@@ -103,6 +119,13 @@
                                         {{ $answer->question->options->firstWhere('is_correct', true)?->option_text ?? $answer->question->correct_answer }}
                                     @elseif(in_array($answer->question->type, ['match', 'drag_drop']))
                                         {{ $answer->question->matchPairs->map(fn($p) => $p->left_text . ' → ' . $p->right_text)->implode(', ') }}
+                                    @elseif($answer->question->type === 'word_order')
+                                        @php $cwWords = preg_split('/\s+/', trim($answer->question->correct_answer ?? ''), -1, PREG_SPLIT_NO_EMPTY); @endphp
+                                        <span class="flex flex-wrap gap-1.5">
+                                            @foreach($cwWords as $cw)
+                                                <span class="px-2.5 py-1 rounded-lg text-xs font-bold bg-success/15 border border-success/25 text-success">{{ $cw }}</span>
+                                            @endforeach
+                                        </span>
                                     @else
                                         {{ $answer->question->correct_answer }}
                                     @endif

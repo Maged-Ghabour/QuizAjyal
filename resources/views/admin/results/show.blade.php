@@ -105,7 +105,25 @@
                                 }
                             }
                         @endphp
-                        {{ $studentAnswer ?: __('quiz.no_answer') }}
+                        @if($answer->question->type === 'word_order')
+                            @php
+                                $woWords = preg_split('/\s+/', trim($studentAnswer ?? ''), -1, PREG_SPLIT_NO_EMPTY);
+                            @endphp
+                            @if(count($woWords))
+                                <span class="flex flex-wrap gap-1.5 mt-1">
+                                    @foreach($woWords as $w)
+                                        <span class="px-2.5 py-1 rounded-lg text-xs font-bold
+                                            {{ $answer->is_correct ? 'bg-success/15 border border-success/25 text-success' : 'bg-danger/10 border border-danger/20 text-danger/80' }}">
+                                            {{ $w }}
+                                        </span>
+                                    @endforeach
+                                </span>
+                            @else
+                                <span class="text-gray-500 italic text-xs">{{ __('quiz.no_answer') }}</span>
+                            @endif
+                        @else
+                            {{ $studentAnswer ?: __('quiz.no_answer') }}
+                        @endif
                     </span>
 
                     @if($answer->question->type === 'essay')
@@ -124,7 +142,7 @@
                     @endif
                 </div>
 
-                @if($answer->question->type !== 'essay')
+                @if(!in_array($answer->question->type, ['essay']))
                     <div class="p-3 rounded-xl bg-success/5 border border-success/10">
                         <span class="text-xs font-medium text-success/60 block mb-1">{{ __('quiz.correct_answer_label') }}</span>
                         <span class="text-gray-200">
@@ -132,6 +150,17 @@
                                 {{ $answer->question->options->firstWhere('is_correct', true)?->option_text ?? $answer->question->correct_answer }}
                             @elseif(in_array($answer->question->type, ['match', 'drag_drop']))
                                 {{ $answer->question->matchPairs->map(fn($p) => $p->left_text . ' → ' . $p->right_text)->implode(' | ') }}
+                            @elseif($answer->question->type === 'word_order')
+                                @php
+                                    $correctWords = preg_split('/\s+/', trim($answer->question->correct_answer ?? ''), -1, PREG_SPLIT_NO_EMPTY);
+                                @endphp
+                                <span class="flex flex-wrap gap-1.5 mt-1">
+                                    @foreach($correctWords as $cw)
+                                        <span class="px-2.5 py-1 rounded-lg text-xs font-bold bg-success/15 border border-success/25 text-success">
+                                            {{ $cw }}
+                                        </span>
+                                    @endforeach
+                                </span>
                             @else
                                 {{ $answer->question->correct_answer }}
                             @endif

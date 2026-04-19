@@ -58,6 +58,14 @@
                                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                                             {{ __('quiz.type_passage') }}
                                             @break
+                                        @case('essay')
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                                            {{ __('quiz.type_essay') }}
+                                            @break
+                                        @case('word_order')
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h12M4 14h8"/></svg>
+                                            {{ __('quiz.type_word_order') }}
+                                            @break
                                     @endswitch
                                 </span>
                             </div>
@@ -78,7 +86,7 @@
                         @if($question->question_audio)
                             <div class="my-4">
                                 <audio controls class="w-full h-10 rounded-lg custom-audio">
-                                    <source src="{{ Storage::url($question->question_audio) }}">
+                                    <source src="{{ '/files/' . $question->question_audio }}">
                                     Your browser does not support the audio element.
                                 </audio>
                             </div>

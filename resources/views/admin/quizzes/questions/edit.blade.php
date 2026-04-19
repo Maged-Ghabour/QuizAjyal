@@ -164,6 +164,23 @@
             </div>
             @endif
 
+            {{-- Word Order field --}}
+            @if($question->type === 'word_order')
+            <div id="word-order-field" class="space-y-3">
+                <div class="rounded-xl bg-primary/10 border border-primary/20 p-3 text-xs text-primary-light flex items-start gap-2">
+                    <svg class="w-4 h-4 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    {{ __('quiz.word_order_hint') }}
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-400 mb-1">{{ __('quiz.word_order_sentence') }} *</label>
+                    <input type="text" name="correct_answer"
+                           value="{{ old('correct_answer', $question->correct_answer) }}"
+                           class="w-full px-3 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all"
+                           placeholder="{{ __('quiz.word_order_sentence_placeholder') }}">
+                </div>
+            </div>
+            @endif
+
             <button type="submit"
                     class="w-full py-3 bg-gradient-to-r from-success to-emerald-600 hover:from-emerald-500 hover:to-success rounded-xl font-medium text-white text-sm shadow-lg shadow-success/25 hover:shadow-success/40 transition-all duration-300 flex items-center justify-center gap-2 mt-6">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>

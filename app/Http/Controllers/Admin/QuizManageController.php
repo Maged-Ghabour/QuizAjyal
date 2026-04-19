@@ -134,7 +134,7 @@ class QuizManageController extends Controller
     public function storeQuestion(Request $request, Quiz $quiz): RedirectResponse
     {
         $validated = $request->validate([
-            'type'           => ['required', 'string', 'in:mcq,fill_blank,drag_drop,true_false,passage,essay'],
+            'type'           => ['required', 'string', 'in:mcq,fill_blank,drag_drop,true_false,passage,essay,word_order'],
             'question_text'  => ['required', 'string'],
             'question_image' => ['nullable', 'image', 'max:2048'],
             'question_audio' => ['nullable', 'mimes:mp3,wav,ogg,mpga,webm', 'max:10240'],

@@ -115,7 +115,7 @@
                 @if($question->question_audio)
                     <div class="mt-2 mb-3">
                         <audio controls class="h-8 max-w-full">
-                            <source src="{{ Storage::url($question->question_audio) }}">
+                            <source src="{{ '/files/' . $question->question_audio }}">
                         </audio>
                     </div>
                 @endif
@@ -146,6 +146,12 @@
                         <span class="inline-flex items-center gap-1 px-2.5 py-1 bg-success/10 rounded-lg text-xs text-success">
                             {{ __('quiz.correct_answer') }}: {{ $question->correct_answer }}
                         </span>
+                    </div>
+                @elseif($question->type === 'word_order')
+                    <div class="mt-2 flex flex-wrap gap-1.5">
+                        @foreach(preg_split('/\s+/', trim($question->correct_answer ?? ''), -1, PREG_SPLIT_NO_EMPTY) as $w)
+                            <span class="px-2.5 py-1 rounded-lg text-xs bg-primary/10 border border-primary/20 text-primary-light font-medium">{{ $w }}</span>
+                        @endforeach
                     </div>
                 @elseif($question->type === 'passage')
                     <div class="mt-2 space-y-1">
@@ -184,7 +190,8 @@
                             <option value="drag_drop" class="bg-dark" {{ old('type') == 'drag_drop' ? 'selected' : '' }}>{{ __('quiz.type_drag_drop') }}</option>
                             <option value="true_false" class="bg-dark" {{ old('type') == 'true_false' ? 'selected' : '' }}>{{ __('quiz.type_true_false') }}</option>
                             <option value="passage" class="bg-dark" {{ old('type') == 'passage' ? 'selected' : '' }}>{{ __('quiz.type_passage') }}</option>
-                            <option value="essay" class="bg-dark" {{ old('type') == 'essay' ? 'selected' : '' }}>سؤال مقالي (كتابة عبارة)</option>
+                            <option value="essay" class="bg-dark" {{ old('type') == 'essay' ? 'selected' : '' }}>{{ __('quiz.type_essay') }}</option>
+                            <option value="word_order" class="bg-dark" {{ old('type') == 'word_order' ? 'selected' : '' }}>{{ __('quiz.type_word_order') }}</option>
                         </select>
                     </div>
                     <div id="points-wrapper">
@@ -304,6 +311,20 @@
                     </div>
                 </div>
 
+                {{-- Word Order field --}}
+                <div id="word-order-field" class="hidden space-y-3">
+                    <div class="rounded-xl bg-primary/10 border border-primary/20 p-3 text-xs text-primary-light flex items-start gap-2">
+                        <svg class="w-4 h-4 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        {{ __('quiz.word_order_hint') }}
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-400 mb-1">{{ __('quiz.word_order_sentence') }} *</label>
+                        <input type="text" name="correct_answer" id="word-order-sentence"
+                               class="w-full px-3 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all"
+                               placeholder="{{ __('quiz.word_order_sentence_placeholder') }}">
+                    </div>
+                </div>
+
                 <button type="submit"
                         class="w-full py-3 bg-gradient-to-r from-success to-emerald-600 hover:from-emerald-500 hover:to-success rounded-xl font-medium text-white text-sm shadow-lg shadow-success/25 hover:shadow-success/40 transition-all duration-300 flex items-center justify-center gap-2">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
@@ -332,6 +353,7 @@ function toggleQuestionFields() {
     const pairsField     = document.getElementById('pairs-field');
     const trueFalseField = document.getElementById('truefalse-field');
     const passageField   = document.getElementById('passage-field');
+    const wordOrderField = document.getElementById('word-order-field');
     const pointsWrapper  = document.getElementById('points-wrapper');
     const pointsInput    = document.getElementById('question-points');
 
@@ -340,6 +362,7 @@ function toggleQuestionFields() {
     pairsField.classList.add('hidden');
     trueFalseField.classList.add('hidden');
     passageField.classList.add('hidden');
+    wordOrderField.classList.add('hidden');
     pointsWrapper.classList.remove('hidden');
     pointsInput.required = true;
 
@@ -362,6 +385,8 @@ function toggleQuestionFields() {
         }
     } else if (type === 'essay') {
         // Essay only needs question text and points.
+    } else if (type === 'word_order') {
+        wordOrderField.classList.remove('hidden');
     }
 }
 
