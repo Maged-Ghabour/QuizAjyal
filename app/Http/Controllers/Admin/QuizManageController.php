@@ -137,7 +137,7 @@ class QuizManageController extends Controller
             'type'           => ['required', 'string', 'in:mcq,fill_blank,drag_drop,true_false,passage'],
             'question_text'  => ['required', 'string'],
             'question_image' => ['nullable', 'image', 'max:2048'],
-            'question_audio' => ['nullable', 'mimes:mp3,wav,ogg,mpga', 'max:10240'],
+            'question_audio' => ['nullable', 'mimes:mp3,wav,ogg,mpga,webm', 'max:10240'],
             'correct_answer' => ['nullable', 'string'],
             'points'         => ['required_unless:type,passage', 'nullable', 'integer', 'min:1'],
         ]);
@@ -222,7 +222,7 @@ class QuizManageController extends Controller
         $validated = $request->validate([
             'question_text'  => ['required', 'string'],
             'question_image' => ['nullable', 'image', 'max:2048'],
-            'question_audio' => ['nullable', 'mimes:mp3,wav,ogg,mpga', 'max:10240'],
+            'question_audio' => ['nullable', 'mimes:mp3,wav,ogg,mpga,webm', 'max:10240'],
             'correct_answer' => ['nullable', 'string'],
             'points'         => ['required_unless:type,passage', 'nullable', 'integer', 'min:1'],
         ]);
