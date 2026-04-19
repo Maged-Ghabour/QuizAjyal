@@ -103,22 +103,29 @@ class ResultController extends Controller
     }
 
     /**
-     * Manually grade an essay question.
+     * Manually grade an essay question, or edit a student's answer text.
      */
     public function updateGrade(Request $request, QuizAttempt $attempt, \App\Models\AttemptAnswer $answer): \Illuminate\Http\RedirectResponse
     {
         $validated = $request->validate([
-            'points' => ['required', 'integer', 'min:0', 'max:' . $answer->question->points]
+            'points' => ['required', 'integer', 'min:0', 'max:' . $answer->question->points],
+            'student_answer' => ['nullable', 'string']
         ]);
 
         $newPoints = (int) $validated['points'];
         $oldPoints = $answer->points_earned;
 
         // Update answer
-        $answer->update([
+        $updateData = [
             'points_earned' => $newPoints,
             'is_correct' => $newPoints > 0,
-        ]);
+        ];
+        
+        if ($request->has('student_answer')) {
+            $updateData['student_answer'] = $validated['student_answer'];
+        }
+
+        $answer->update($updateData);
 
         // Recalculate total score
         $difference = $newPoints - $oldPoints;
@@ -129,8 +136,20 @@ class ResultController extends Controller
         $attempt->update([
             'score' => $newTotalScore,
             'percentage' => $percentage,
+            'is_passed' => $percentage >= $attempt->quiz->pass_percentage,
         ]);
 
-        return redirect()->back()->with('success', 'تم تقييم الإجابة بنجاح! (Grade updated successfully)');
+        return redirect()->back()->with('success', 'تم تعديل الإجابة/التقييم بنجاح! (Grade updated successfully)');
+    }
+
+    /**
+     * Delete a quiz attempt and its answers.
+     */
+    public function destroy(QuizAttempt $attempt): \Illuminate\Http\RedirectResponse
+    {
+        $attempt->answers()->delete();
+        $attempt->delete();
+
+        return redirect()->route('admin.results.index')->with('success', 'تم حذف نتيجة الطالب نهائياً من النظام.');
     }
 }

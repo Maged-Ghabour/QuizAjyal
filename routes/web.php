@@ -58,6 +58,7 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
     Route::get('results/export/{quiz?}', [ResultController::class, 'export'])->name('results.export');
     Route::get('results/{attempt}', [ResultController::class, 'show'])->name('results.show');
     Route::post('results/{attempt}/grade/{answer}', [ResultController::class, 'updateGrade'])->name('results.grade');
+    Route::delete('results/{attempt}', [ResultController::class, 'destroy'])->name('results.destroy');
 });
 
 

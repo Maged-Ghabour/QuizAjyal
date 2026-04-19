@@ -126,16 +126,23 @@
                         @endif
                     </span>
 
-                    @if($answer->question->type === 'essay')
+                    @if(in_array($answer->question->type, ['essay', 'fill_blank']))
                         <div class="mt-4 pt-4 border-t border-white/10">
-                            <form action="{{ route('admin.results.grade', ['attempt' => $attempt->id, 'answer' => $answer->id]) }}" method="POST" class="flex gap-2 items-end">
+                            <form action="{{ route('admin.results.grade', ['attempt' => $attempt->id, 'answer' => $answer->id]) }}" method="POST" class="flex flex-wrap gap-4 items-end">
                                 @csrf
-                                <div class="w-24">
-                                    <label class="block text-xs font-medium text-gray-400 mb-1">الدرجة (من {{ $answer->question->points }})</label>
-                                    <input type="number" name="points" min="0" max="{{ $answer->question->points }}" value="{{ $answer->points_earned }}" required class="w-full px-2 py-1.5 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:ring-1 focus:ring-primary">
+                                
+                                <div class="flex-1 min-w-[200px]">
+                                    <label class="block text-xs font-medium text-gray-400 mb-1">إجابة الطالب المكتوبة (قابلة للتعديل)</label>
+                                    <input type="text" name="student_answer" value="{{ $answer->student_answer }}" class="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:ring-1 focus:ring-primary transition-all" dir="auto">
                                 </div>
-                                <button type="submit" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 rounded-lg text-white text-xs font-bold transition-colors">
-                                    حفظ الدرجة
+
+                                <div class="w-28">
+                                    <label class="block text-xs font-medium text-gray-400 mb-1">الدرجة (من {{ $answer->question->points }})</label>
+                                    <input type="number" name="points" min="0" max="{{ $answer->question->points }}" value="{{ $answer->points_earned }}" required class="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:ring-1 focus:ring-primary transition-all">
+                                </div>
+
+                                <button type="submit" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-lg text-white text-sm font-bold transition-colors shadow-lg shadow-indigo-600/20">
+                                    حفظ التعديل
                                 </button>
                             </form>
                         </div>
