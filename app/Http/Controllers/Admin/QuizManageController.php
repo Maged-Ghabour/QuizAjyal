@@ -134,7 +134,7 @@ class QuizManageController extends Controller
     public function storeQuestion(Request $request, Quiz $quiz): RedirectResponse
     {
         $validated = $request->validate([
-            'type'           => ['required', 'string', 'in:mcq,fill_blank,drag_drop,true_false,passage,essay,word_order'],
+            'type'           => ['required', 'string', 'in:mcq,image_choice,fill_blank,drag_drop,true_false,passage,essay,word_order'],
             'question_text'  => ['required', 'string'],
             'question_image' => ['nullable', 'image', 'max:2048'],
             'question_audio' => ['nullable', 'mimes:mp3,wav,ogg,mpga,webm', 'max:10240'],
@@ -159,8 +159,8 @@ class QuizManageController extends Controller
 
         $question = $quiz->questions()->create($validated);
 
-        // Handle options for MCQ
-        if ($validated['type'] === 'mcq') {
+        // Handle options for MCQ and Image Choice
+        if (in_array($validated['type'], ['mcq', 'image_choice'])) {
             $options = $request->input('options', []);
             foreach ($options as $i => $opt) {
                 $optionData = [
@@ -243,8 +243,9 @@ class QuizManageController extends Controller
 
         $question->update($validated);
 
-        // Update options for MCQ
-        if ($question->type === 'mcq') {
+        // Update options for MCQ and Image Choice
+        if (in_array($question->type, ['mcq', 'image_choice'])) {
+            $oldOptions = $question->options->keyBy('sort_order');
             $question->options()->delete();
             $options = $request->input('options', []);
             foreach ($options as $i => $opt) {
@@ -254,6 +255,13 @@ class QuizManageController extends Controller
                     'is_correct' => isset($opt['is_correct']),
                     'sort_order' => $i,
                 ];
+
+                if (isset($opt['option_image']) && $request->hasFile("options.{$i}.option_image")) {
+                    $optionData['option_image'] = $request->file("options.{$i}.option_image")->store('options', 'public');
+                } elseif (isset($oldOptions[$i]) && $oldOptions[$i]->option_image) {
+                    $optionData['option_image'] = $oldOptions[$i]->option_image;
+                }
+
                 $question->options()->create($optionData);
             }
         }

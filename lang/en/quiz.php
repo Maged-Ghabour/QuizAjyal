@@ -124,6 +124,7 @@ return [
     // Question Types
     'type_mcq' => 'Multiple Choice',
     'type_fill_blank' => 'Fill in the Blank',
+    'type_image_choice' => 'Image Choice',
     'type_drag_drop' => 'Drag & Drop',
     'type_true_false' => 'True / False',
     'type_passage' => 'Reading Passage',

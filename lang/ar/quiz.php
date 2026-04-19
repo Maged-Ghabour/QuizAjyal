@@ -122,9 +122,11 @@ return [
     'pts' => 'نقطة',
 
     // Question Types
+    'type_empty' => 'فارغ',
     'type_mcq' => 'اختيار من متعدد',
     'type_fill_blank' => 'أكمل الفراغ',
     'type_drag_drop' => 'سحب وإفلات',
+    'type_image_choice' => 'اختيار صورة',
     'type_true_false' => 'صح / خطأ',
     'type_passage' => 'قطعة قراءة',
     'type_essay' => 'سؤال مقالي (عبارة)',

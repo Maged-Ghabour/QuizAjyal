@@ -120,14 +120,17 @@
                     </div>
                 @endif
 
-                @if($question->type === 'mcq')
+                @if(in_array($question->type, ['mcq', 'image_choice']))
                     <div class="flex flex-wrap gap-2 mt-2">
                         @foreach($question->options as $option)
                             <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs {{ $option->is_correct ? 'bg-success/15 text-success border border-success/20' : 'bg-white/5 text-gray-400' }}">
                                 @if($option->is_correct)
                                     <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
                                 @endif
-                                {{ $option->label }}: {{ $option->option_text }}
+                                @if($option->option_image)
+                                    <img src="{{ '/files/' . $option->option_image }}" class="w-4 h-4 rounded object-cover">
+                                @endif
+                                {{ $option->label }}{{ $option->option_text ? ': '.$option->option_text : '' }}
                             </span>
                         @endforeach
                     </div>
@@ -186,6 +189,7 @@
                                 class="w-full px-3 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all appearance-none cursor-pointer">
                             <option value="" class="bg-dark">{{ __('quiz.select_type') }}</option>
                             <option value="mcq" class="bg-dark" {{ old('type') == 'mcq' ? 'selected' : '' }}>{{ __('quiz.type_mcq') }}</option>
+                            <option value="image_choice" class="bg-dark" {{ old('type') == 'image_choice' ? 'selected' : '' }}>{{ __('quiz.type_image_choice') }}</option>
                             <option value="fill_blank" class="bg-dark" {{ old('type') == 'fill_blank' ? 'selected' : '' }}>{{ __('quiz.type_fill_blank') }}</option>
                             <option value="drag_drop" class="bg-dark" {{ old('type') == 'drag_drop' ? 'selected' : '' }}>{{ __('quiz.type_drag_drop') }}</option>
                             <option value="true_false" class="bg-dark" {{ old('type') == 'true_false' ? 'selected' : '' }}>{{ __('quiz.type_true_false') }}</option>
@@ -249,13 +253,16 @@
                     </div>
                     <div id="options-container" class="space-y-2">
                         @for($i = 0; $i < 4; $i++)
-                        <div class="flex items-center gap-2 option-row">
-                            <input type="text" name="options[{{ $i }}][label]" value="{{ chr(65 + $i) }}" class="w-12 px-2 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm text-center focus:outline-none focus:ring-1 focus:ring-primary/50">
-                            <input type="text" name="options[{{ $i }}][option_text]" placeholder="{{ __('quiz.option_text_placeholder') }}" class="flex-1 px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:ring-1 focus:ring-primary/50">
-                            <label class="flex items-center gap-1 text-xs text-gray-400 whitespace-nowrap cursor-pointer">
-                                <input type="checkbox" name="options[{{ $i }}][is_correct]" class="w-4 h-4 rounded bg-white/5 border-white/20 text-success focus:ring-success/50 focus:ring-offset-0">
-                                {{ __('quiz.correct') }}
-                            </label>
+                        <div class="flex flex-col gap-2 option-row bg-white/[0.02] p-3 rounded-lg border border-white/5">
+                            <div class="flex items-center gap-2">
+                                <input type="text" name="options[{{ $i }}][label]" value="{{ chr(65 + $i) }}" class="w-12 px-2 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm text-center focus:outline-none focus:ring-1 focus:ring-primary/50">
+                                <input type="text" name="options[{{ $i }}][option_text]" placeholder="{{ __('quiz.option_text_placeholder') }}" class="flex-1 px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:ring-1 focus:ring-primary/50">
+                                <label class="flex items-center gap-1 text-xs text-gray-400 whitespace-nowrap cursor-pointer">
+                                    <input type="checkbox" name="options[{{ $i }}][is_correct]" class="w-4 h-4 rounded bg-white/5 border-white/20 text-success focus:ring-success/50 focus:ring-offset-0">
+                                    {{ __('quiz.correct') }}
+                                </label>
+                            </div>
+                            <input type="file" name="options[{{ $i }}][option_image]" accept="image/*" class="w-full text-xs text-gray-400 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-[10px] file:bg-white/10 file:text-white hover:file:bg-white/20 mt-1">
                         </div>
                         @endfor
                     </div>
@@ -368,6 +375,8 @@ function toggleQuestionFields() {
 
     if (type === 'mcq') {
         optionsField.classList.remove('hidden');
+    } else if (type === 'image_choice') {
+        optionsField.classList.remove('hidden'); // Uses the same options field container but frontend takes care of image input
     } else if (type === 'fill_blank') {
         correctField.classList.remove('hidden');
     } else if (type === 'true_false') {
@@ -397,16 +406,19 @@ function addOption() {
     const correctText   = @json(__('quiz.correct'));
     const optPlaceholder = @json(__('quiz.option_text_placeholder'));
     const html = `
-        <div class="flex items-center gap-2 option-row">
-            <input type="text" name="options[${optionCount}][label]" value="${label}" class="w-12 px-2 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm text-center focus:outline-none focus:ring-1 focus:ring-primary/50">
-            <input type="text" name="options[${optionCount}][option_text]" placeholder="${optPlaceholder}" class="flex-1 px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:ring-1 focus:ring-primary/50">
-            <label class="flex items-center gap-1 text-xs text-gray-400 whitespace-nowrap cursor-pointer">
-                <input type="checkbox" name="options[${optionCount}][is_correct]" class="w-4 h-4 rounded bg-white/5 border-white/20 text-success focus:ring-success/50 focus:ring-offset-0">
-                ${correctText}
-            </label>
-            <button type="button" onclick="this.parentElement.remove()" class="p-1 text-gray-500 hover:text-danger">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-            </button>
+        <div class="flex flex-col gap-2 option-row bg-white/[0.02] p-3 rounded-lg border border-white/5">
+            <div class="flex items-center gap-2">
+                <input type="text" name="options[${optionCount}][label]" value="${label}" class="w-12 px-2 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm text-center focus:outline-none focus:ring-1 focus:ring-primary/50">
+                <input type="text" name="options[${optionCount}][option_text]" placeholder="${optPlaceholder}" class="flex-1 px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:ring-1 focus:ring-primary/50">
+                <label class="flex items-center gap-1 text-xs text-gray-400 whitespace-nowrap cursor-pointer">
+                    <input type="checkbox" name="options[${optionCount}][is_correct]" class="w-4 h-4 rounded bg-white/5 border-white/20 text-success focus:ring-success/50 focus:ring-offset-0">
+                    ${correctText}
+                </label>
+                <button type="button" onclick="this.closest('.option-row').remove()" class="p-1 text-gray-500 hover:text-danger">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+            <input type="file" name="options[${optionCount}][option_image]" accept="image/*" class="w-full text-xs text-gray-400 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-[10px] file:bg-white/10 file:text-white hover:file:bg-white/20 mt-1">
         </div>`;
     container.insertAdjacentHTML('beforeend', html);
     optionCount++;
