@@ -237,9 +237,29 @@ class QuizController extends Controller
                 return $correct && (string) $correct->id === (string) $answer;
             })(),
             'fill_blank', 'true_false' =>
-                mb_strtolower(trim((string) $answer)) === mb_strtolower(trim($subQ->correct_answer ?? '')),
+                $this->normalizeTextForGrading((string) $answer) === $this->normalizeTextForGrading($subQ->correct_answer ?? ''),
             default => false,
         };
+    }
+
+    /**
+     * Normalize text for robust grading (handles Arabic variations, case, extra spaces, and basic punctuation).
+     */
+    private function normalizeTextForGrading(string $text): string
+    {
+        $text = mb_strtolower(trim($text));
+        // Remove multiple spaces
+        $text = preg_replace('/\s+/', ' ', $text);
+        // Remove basic punctuation (English and Arabic)
+        $text = preg_replace('/[.,?!؛،؟]/u', '', $text);
+        // Normalize Arabic characters
+        $text = preg_replace('/[أإآ]/u', 'ا', $text); // Alefs
+        $text = str_replace('ة', 'ه', $text); // Teh Marbuta to Heh
+        $text = str_replace('ى', 'ي', $text); // Alef Maksura to Yeh
+        // Remove Arabic Diacritics (Tashkeel)
+        $text = preg_replace('/[\x{0617}-\x{061A}\x{064B}-\x{0652}]/u', '', $text);
+        
+        return trim($text);
     }
 
     private function gradeMcq(Question $question, mixed $answer): bool
@@ -251,12 +271,12 @@ class QuizController extends Controller
 
     private function gradeFillBlank(Question $question, mixed $answer): bool
     {
-        return mb_strtolower(trim((string) $answer)) === mb_strtolower(trim($question->correct_answer ?? ''));
+        return $this->normalizeTextForGrading((string) $answer) === $this->normalizeTextForGrading($question->correct_answer ?? '');
     }
 
     private function gradeTrueFalse(Question $question, mixed $answer): bool
     {
-        return mb_strtolower(trim((string) $answer)) === mb_strtolower(trim($question->correct_answer ?? ''));
+        return $this->normalizeTextForGrading((string) $answer) === $this->normalizeTextForGrading($question->correct_answer ?? '');
     }
 
     private function gradeMatch(Question $question, mixed $answer): bool
@@ -284,8 +304,8 @@ class QuizController extends Controller
      */
     private function gradeWordOrder(Question $question, mixed $answer): bool
     {
-        $correct = preg_replace('/\s+/', ' ', mb_strtolower(trim($question->correct_answer ?? '')));
-        $student = preg_replace('/\s+/', ' ', mb_strtolower(trim((string) $answer)));
+        $correct = $this->normalizeTextForGrading($question->correct_answer ?? '');
+        $student = $this->normalizeTextForGrading((string) $answer);
 
         return $correct !== '' && $correct === $student;
     }

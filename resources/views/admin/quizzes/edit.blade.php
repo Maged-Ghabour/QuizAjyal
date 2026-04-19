@@ -373,14 +373,19 @@ function toggleQuestionFields() {
     pointsWrapper.classList.remove('hidden');
     pointsInput.required = true;
 
+    // Disable all correct_answer inputs so they don't submit and overwrite each other
+    document.querySelectorAll('[name="correct_answer"]').forEach(el => el.disabled = true);
+
     if (type === 'mcq') {
         optionsField.classList.remove('hidden');
     } else if (type === 'image_choice') {
         optionsField.classList.remove('hidden'); // Uses the same options field container but frontend takes care of image input
     } else if (type === 'fill_blank') {
         correctField.classList.remove('hidden');
+        correctField.querySelectorAll('[name="correct_answer"]').forEach(el => el.disabled = false);
     } else if (type === 'true_false') {
         trueFalseField.classList.remove('hidden');
+        trueFalseField.querySelectorAll('[name="correct_answer"]').forEach(el => el.disabled = false);
     } else if (type === 'drag_drop') {
         pairsField.classList.remove('hidden');
     } else if (type === 'passage') {
@@ -396,6 +401,7 @@ function toggleQuestionFields() {
         // Essay only needs question text and points.
     } else if (type === 'word_order') {
         wordOrderField.classList.remove('hidden');
+        wordOrderField.querySelectorAll('[name="correct_answer"]').forEach(el => el.disabled = false);
     }
 }
 
