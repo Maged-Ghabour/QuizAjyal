@@ -416,7 +416,7 @@ const sqOptionsLbl= @json(__('quiz.options'));
 
 function buildTypeOptions(selectedType, idx) {
     return Object.entries(sqTypes).map(([val, lbl]) =>
-        `<option value="${val}" ${val === selectedType ? 'selected' : ''}>${lbl}</option>`
+        `<option value="${val}" ${val === selectedType ? 'selected' : ''} class="bg-dark">${lbl}</option>`
     ).join('');
 }
 
