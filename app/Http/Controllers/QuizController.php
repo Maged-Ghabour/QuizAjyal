@@ -8,6 +8,7 @@ use App\Models\Quiz;
 use App\Models\QuizAttempt;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\View\View;
 
 class QuizController extends Controller
@@ -17,10 +18,12 @@ class QuizController extends Controller
      */
     public function show(string $slug): View
     {
-        $quiz = Quiz::active()
-            ->where('slug', $slug)
-            ->withCount('questions')
-            ->firstOrFail();
+        $quiz = Cache::remember("quiz_landing_{$slug}", 600, function () use ($slug) {
+            return Quiz::active()
+                ->where('slug', $slug)
+                ->withCount('questions')
+                ->firstOrFail();
+        });
 
         return view('quiz.landing', compact('quiz'));
     }
@@ -34,14 +37,32 @@ class QuizController extends Controller
 
         $validated = $request->validate([
             'student_name'  => ['required', 'string', 'max:255'],
-            'student_phone' => ['required', 'string', 'max:20'],
+            'student_phone' => ['required', 'string', 'regex:/^[0-9\+\-\s\(\)]{7,20}$/'],
+        ], [
+            'student_phone.regex' => 'رقم الهاتف غير صحيح، يُرجى إدخال رقم هاتف صالح.',
         ]);
 
-        $attempt = QuizAttempt::create([
+        // Check max_attempts limit
+        if ($quiz->max_attempts !== null) {
+            $existingCount = \App\Models\QuizAttempt::where('quiz_id', $quiz->id)
+                ->where('student_phone', $validated['student_phone'])
+                ->whereNotNull('completed_at')
+                ->count();
+
+            if ($existingCount >= $quiz->max_attempts) {
+                return back()->withErrors([
+                    'student_phone' => 'لقد استنفدت الحد الأقصى لعدد المحاولات المسموح بها لهذا الاختبار (' . $quiz->max_attempts . ' محاولة).',
+                ])->withInput();
+            }
+        }
+
+        $attempt = \App\Models\QuizAttempt::create([
             'quiz_id'       => $quiz->id,
             'student_name'  => $validated['student_name'],
             'student_phone' => $validated['student_phone'],
             'total_points'  => $quiz->questions()->sum('points'),
+            'ip_address'    => $request->ip(),
+            'user_agent'    => substr($request->userAgent() ?? '', 0, 255),
             'started_at'    => now(),
         ]);
 
@@ -55,14 +76,17 @@ class QuizController extends Controller
      */
     public function questions(string $slug): View|RedirectResponse
     {
-        $quiz = Quiz::active()
-            ->where('slug', $slug)
-            ->with([
-                'questions.options',
-                'questions.matchPairs',
-                'questions.passageSubQuestions.options',
-            ])
-            ->firstOrFail();
+        // Cache the heavy question data (questions + options + pairs + sub-questions)
+        $quiz = Cache::remember("quiz_take_{$slug}", 600, function () use ($slug) {
+            return Quiz::active()
+                ->where('slug', $slug)
+                ->with([
+                    'questions.options',
+                    'questions.matchPairs',
+                    'questions.passageSubQuestions.options',
+                ])
+                ->firstOrFail();
+        });
 
         $attemptId = session('quiz_attempt_id');
         if (!$attemptId) {
@@ -117,7 +141,7 @@ class QuizController extends Controller
             $studentAnswer = $answers[$question->id] ?? null;
 
             if ($question->type === 'passage') {
-                // Grade each sub-question independently
+                // Grade each sub-question independently (partial scoring)
                 $subAnswers   = is_array($studentAnswer) ? $studentAnswer : [];
                 $passageScore = 0;
 
@@ -134,7 +158,7 @@ class QuizController extends Controller
                 $attempt->answers()->create([
                     'question_id'    => $question->id,
                     'student_answer' => json_encode($subAnswers),
-                    'is_correct'     => $passageScore >= $question->points && $question->points > 0,
+                    'is_correct'     => $passageScore > 0,               // any correct sub-Q = not fully wrong
                     'points_earned'  => $passageScore,
                 ]);
             } else {
@@ -285,18 +309,22 @@ class QuizController extends Controller
             return false;
         }
 
-        $pairs     = $question->matchPairs;
-        $allCorrect = true;
+        $pairs      = $question->matchPairs;
+        $totalPairs = $pairs->count();
+        if ($totalPairs === 0) {
+            return false;
+        }
 
+        $correctCount = 0;
         foreach ($pairs as $pair) {
             $studentMatch = $answer[$pair->id] ?? null;
-            if ((string) $studentMatch !== (string) $pair->id) {
-                $allCorrect = false;
-                break;
+            if ((string) $studentMatch === (string) $pair->id) {
+                $correctCount++;
             }
         }
 
-        return $allCorrect;
+        // All pairs must be correct to count as correct
+        return $correctCount === $totalPairs;
     }
 
     /**

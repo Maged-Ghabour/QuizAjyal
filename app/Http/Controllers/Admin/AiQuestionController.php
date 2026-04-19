@@ -43,7 +43,8 @@ class AiQuestionController extends Controller
         Ensure exactly 4 options per question, with exactly ONE option being correct. Return ONLY the raw JSON array without any markdown formatting, backticks, or extra text.";
 
         try {
-            $response = Http::timeout(30)
+            $response = Http::withoutVerifying()
+                ->timeout(30)
                 ->post("https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={$apiKey}", [
                     'contents' => [
                         [
@@ -59,12 +60,16 @@ class AiQuestionController extends Controller
 
             if ($response->failed()) {
                 Log::error('Gemini Error: ' . $response->body());
-                return back()->with('error', __('quiz.ai_error') ?? 'Failed to connect to Google Gemini. Please try again.');
+                $errorMsg = $response->json('error.message') ?? 'Failed to connect to Google Gemini. Please try again.';
+                return back()->with('error', __('quiz.ai_error') ?? $errorMsg);
             }
 
             $content = trim($response->json('candidates.0.content.parts.0.text'));
-            // Remove potential markdown code blocks if the AI includes them despite instructions
-            $content = preg_replace('/```(?:json)?\s*(.*?)\s*```/s', '$1', $content);
+            
+            // Extract JSON array using regex, even if Gemini adds conversational text around it
+            if (preg_match('/\[\s*\{.*\}\s*\]/s', $content, $matches)) {
+                $content = $matches[0];
+            }
 
             $questionsData = json_decode($content, true);
 
@@ -104,7 +109,7 @@ class AiQuestionController extends Controller
 
         } catch (\Exception $e) {
             Log::error('AI Generation Exception: ' . $e->getMessage());
-            return back()->with('error', __('quiz.ai_error') ?? 'An error occurred during generation.');
+            return back()->with('error', 'حدث خطأ: ' . $e->getMessage());
         }
     }
 }

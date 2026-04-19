@@ -32,8 +32,8 @@
             </div>
 
             <div>
-                <label class="block text-xs font-medium text-gray-400 mb-1">{{ __('quiz.question_text') }} *</label>
-                <textarea name="question_text" rows="2" required dir="auto"
+                <label class="block text-xs font-medium text-gray-400 mb-1">{{ __('quiz.question_text') }}</label>
+                <textarea name="question_text" rows="2" dir="auto"
                           class="w-full px-3 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all resize-none">{{ old('question_text', $question->question_text) }}</textarea>
             </div>
 

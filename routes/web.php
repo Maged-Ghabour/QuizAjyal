@@ -50,6 +50,9 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
     // AI Question generation
     Route::post('quizzes/{quiz}/ai-generate', [\App\Http\Controllers\Admin\AiQuestionController::class, 'generate'])->name('quizzes.ai.generate');
 
+    // Quiz Preview (admin only)
+    Route::get('quizzes/{quiz}/preview', [QuizManageController::class, 'preview'])->name('quizzes.preview');
+
     // Results
     Route::get('results', [ResultController::class, 'index'])->name('results.index');
     Route::get('results/export/{quiz?}', [ResultController::class, 'export'])->name('results.export');

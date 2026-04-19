@@ -3,10 +3,24 @@
 @section('title', __('quiz.taking_quiz', ['title' => $quiz->title]))
 
 @section('content')
+@php $isPreview = $previewMode ?? false; @endphp
+
+{{-- Preview mode banner --}}
+@if($isPreview)
+<div class="fixed top-0 inset-x-0 z-50 bg-gradient-to-r from-amber-500 to-orange-500 text-white text-center py-2 px-4 flex items-center justify-center gap-3 shadow-lg">
+    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+    <span class="font-bold text-sm">⚠️ وضع المعاينة — هذا الاختبار لن يُسجَّل ولن يُرسَل</span>
+    <a href="{{ route('admin.quizzes.edit', $quiz) }}" class="ms-4 px-3 py-1 bg-white/20 hover:bg-white/30 rounded-lg text-xs font-bold transition-colors">
+        ← العودة للتعديل
+    </a>
+</div>
+<div class="h-10"></div>
+@endif
+
 <div class="min-h-screen py-6 px-4">
     <div class="max-w-3xl mx-auto">
         {{-- Sticky header with timer and progress --}}
-        <div class="sticky top-0 z-30 mb-6">
+        <div class="sticky {{ $isPreview ? 'top-10' : 'top-0' }} z-30 mb-6">
             <div class="glass-strong rounded-2xl px-6 py-4 shadow-xl">
                 <div class="flex items-center justify-between mb-3">
                     <h1 class="text-lg font-bold text-white truncate {{ app()->getLocale() === 'ar' ? 'ml-4' : 'mr-4' }}">{{ $quiz->title }}</h1>
@@ -108,11 +122,19 @@
 
             {{-- Submit button --}}
             <div class="mt-8 mb-12">
-                <button type="submit" id="submit-btn"
-                        class="w-full py-4 bg-gradient-to-r from-success to-emerald-600 hover:from-emerald-500 hover:to-success rounded-2xl font-bold text-white text-lg shadow-lg shadow-success/25 hover:shadow-success/40 transition-all duration-300 transform hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-center gap-3">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                    {{ __('quiz.submit_quiz') }}
-                </button>
+                @if($isPreview)
+                    <a href="{{ route('admin.quizzes.edit', $quiz) }}"
+                       class="w-full py-4 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 rounded-2xl font-bold text-white text-lg shadow-lg shadow-amber-500/25 transition-all duration-300 flex items-center justify-center gap-3">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+                        العودة لتعديل الاختبار
+                    </a>
+                @else
+                    <button type="submit" id="submit-btn"
+                            class="w-full py-4 bg-gradient-to-r from-success to-emerald-600 hover:from-emerald-500 hover:to-success rounded-2xl font-bold text-white text-lg shadow-lg shadow-success/25 hover:shadow-success/40 transition-all duration-300 transform hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-center gap-3">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        {{ __('quiz.submit_quiz') }}
+                    </button>
+                @endif
             </div>
         </form>
     </div>
@@ -149,13 +171,21 @@ document.addEventListener('DOMContentLoaded', function() {
 
         if (remaining <= 0) {
             timerDisplay.textContent = '00:00';
+            // Only auto-submit in real exam mode, not preview
+            @if(!$isPreview)
             document.getElementById('quiz-form').submit();
+            @endif
             return;
         }
 
         requestAnimationFrame(updateTimer);
     }
+    @if(!$isPreview)
     updateTimer();
+    @else
+    // In preview mode: show duration statically, no countdown
+    timerDisplay.textContent = '{{ sprintf("%02d:00", $quiz->duration_minutes) }}';
+    @endif
 
     // Progress tracking
     const totalQuestions = {{ $questions->count() }};
@@ -187,7 +217,8 @@ document.addEventListener('DOMContentLoaded', function() {
         el.addEventListener('input', updateProgress);
     });
 
-    // Confirm before leaving
+    // Confirm before leaving (only in real exam mode)
+    @if(!$isPreview)
     window.addEventListener('beforeunload', function(e) {
         e.preventDefault();
         e.returnValue = '';
@@ -196,6 +227,7 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('quiz-form').addEventListener('submit', function() {
         window.removeEventListener('beforeunload', function() {});
     });
+    @endif
 });
 </script>
 @endpush

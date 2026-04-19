@@ -10,6 +10,7 @@ use App\Models\QuestionOption;
 use App\Models\Quiz;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 
@@ -90,13 +91,18 @@ class QuizManageController extends Controller
             'show_results'        => ['boolean'],
             'randomize_questions' => ['boolean'],
             'pass_percentage'     => ['required', 'integer', 'min:0', 'max:100'],
+            'max_attempts'        => ['nullable', 'integer', 'min:1', 'max:99'],
         ]);
 
         $validated['is_active']           = $request->boolean('is_active');
         $validated['show_results']        = $request->boolean('show_results');
         $validated['randomize_questions'] = $request->boolean('randomize_questions');
+        // Empty string from form → null (unlimited)
+        $validated['max_attempts']        = $request->filled('max_attempts') ? (int) $request->input('max_attempts') : null;
 
         $quiz->update($validated);
+
+        $this->clearQuizCache($quiz->slug);
 
         return redirect()
             ->route('admin.quizzes.edit', $quiz)
@@ -121,11 +127,31 @@ class QuizManageController extends Controller
         });
         $quiz->attempts()->delete();
         $quiz->questions()->delete();
+
+        $this->clearQuizCache($quiz->slug);
         $quiz->delete();
 
         return redirect()
             ->route('admin.quizzes.index')
             ->with('success', 'Quiz deleted successfully.');
+    }
+
+    /**
+     * Preview the quiz as a student would see it (read-only, no submission).
+     */
+    public function preview(Quiz $quiz): View
+    {
+        $quiz->load([
+            'questions.options',
+            'questions.matchPairs',
+            'questions.passageSubQuestions.options',
+        ]);
+
+        $questions = $quiz->questions;
+
+        return view('quiz.take', compact('quiz', 'questions'))
+            ->with('previewMode', true)
+            ->with('endTime', now()->addMinutes($quiz->duration_minutes)->timestamp);
     }
 
     /**
@@ -135,7 +161,7 @@ class QuizManageController extends Controller
     {
         $validated = $request->validate([
             'type'           => ['required', 'string', 'in:mcq,image_choice,fill_blank,drag_drop,true_false,passage,essay,word_order'],
-            'question_text'  => ['required', 'string'],
+            'question_text'  => ['nullable', 'string'],
             'question_image' => ['nullable', 'image', 'max:2048'],
             'question_audio' => ['nullable', 'mimes:mp3,wav,ogg,mpga,webm', 'max:10240'],
             'correct_answer' => ['nullable', 'string'],
@@ -156,6 +182,8 @@ class QuizManageController extends Controller
         }
 
         $validated['sort_order'] = $quiz->questions()->max('sort_order') + 1;
+
+        $validated['question_text'] = (string) ($validated['question_text'] ?? '');
 
         $question = $quiz->questions()->create($validated);
 
@@ -209,6 +237,8 @@ class QuizManageController extends Controller
             $this->storePassageSubQuestions($request, $question);
         }
 
+        $this->clearQuizCache($quiz->slug);
+
         return redirect()
             ->route('admin.quizzes.edit', $quiz)
             ->with('success', 'Question added successfully.');
@@ -220,7 +250,7 @@ class QuizManageController extends Controller
     public function updateQuestion(Request $request, Quiz $quiz, Question $question): RedirectResponse
     {
         $validated = $request->validate([
-            'question_text'  => ['required', 'string'],
+            'question_text'  => ['nullable', 'string'],
             'question_image' => ['nullable', 'image', 'max:2048'],
             'question_audio' => ['nullable', 'mimes:mp3,wav,ogg,mpga,webm', 'max:10240'],
             'correct_answer' => ['nullable', 'string'],
@@ -240,6 +270,8 @@ class QuizManageController extends Controller
             }
             $validated['question_audio'] = $request->file('question_audio')->store('questions', 'public');
         }
+
+        $validated['question_text'] = (string) ($validated['question_text'] ?? '');
 
         $question->update($validated);
 
@@ -300,6 +332,8 @@ class QuizManageController extends Controller
             $this->storePassageSubQuestions($request, $question);
         }
 
+        $this->clearQuizCache($quiz->slug);
+
         return redirect()
             ->route('admin.quizzes.edit', $quiz)
             ->with('success', 'Question updated.');
@@ -319,6 +353,8 @@ class QuizManageController extends Controller
         $question->passageSubQuestions()->each(fn($sq) => $sq->options()->delete());
         $question->passageSubQuestions()->delete();
         $question->delete();
+
+        $this->clearQuizCache($quiz->slug);
 
         return redirect()
             ->route('admin.quizzes.edit', $quiz)
@@ -370,5 +406,14 @@ class QuizManageController extends Controller
 
         // Update parent question points = sum of sub-questions
         $question->update(['points' => max(1, $totalPoints)]);
+    }
+
+    /**
+     * Clear quiz-related caches when a quiz or its questions are modified.
+     */
+    private function clearQuizCache(string $slug): void
+    {
+        Cache::forget("quiz_landing_{$slug}");
+        Cache::forget("quiz_take_{$slug}");
     }
 }
