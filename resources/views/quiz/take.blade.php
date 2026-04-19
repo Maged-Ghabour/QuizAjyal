@@ -77,7 +77,9 @@
                         </div>
 
                         {{-- Question text --}}
-                        <p class="text-white font-medium mb-1 text-base leading-relaxed">{{ $question->question_text }}</p>
+                        @if($question->type !== 'fill_blank')
+                            <p class="text-white font-medium mb-1 text-base leading-relaxed" dir="auto">{{ $question->question_text }}</p>
+                        @endif
 
                         {{-- Question image --}}
                         @if($question->question_image)

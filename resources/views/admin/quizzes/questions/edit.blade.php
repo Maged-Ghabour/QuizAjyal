@@ -33,7 +33,7 @@
 
             <div>
                 <label class="block text-xs font-medium text-gray-400 mb-1">{{ __('quiz.question_text') }} *</label>
-                <textarea name="question_text" rows="2" required
+                <textarea name="question_text" rows="2" required dir="auto"
                           class="w-full px-3 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all resize-none">{{ old('question_text', $question->question_text) }}</textarea>
             </div>
 
@@ -73,13 +73,14 @@
                             </div>
                         </div>
                     </div>
+                </div>
             </div>
 
             {{-- Correct answer for fill_blank --}}
             @if($question->type === 'fill_blank')
             <div id="correct-answer-field">
                 <label class="block text-xs font-medium text-gray-400 mb-1">{{ __('quiz.correct_answer') }} *</label>
-                <input type="text" name="correct_answer" value="{{ old('correct_answer', $question->correct_answer) }}" required
+                <input type="text" name="correct_answer" value="{{ old('correct_answer', $question->correct_answer) }}" required dir="auto"
                        class="w-full px-3 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all">
             </div>
             @endif
@@ -96,7 +97,7 @@
                     <div class="flex flex-col gap-2 option-row bg-white/[0.02] p-3 rounded-lg border border-white/5">
                         <div class="flex items-center gap-2">
                             <input type="text" name="options[{{ $i }}][label]" value="{{ $opt->label }}" class="w-12 px-2 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm text-center focus:outline-none focus:ring-1 focus:ring-primary/50">
-                            <input type="text" name="options[{{ $i }}][option_text]" value="{{ $opt->option_text }}" class="flex-1 px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:ring-1 focus:ring-primary/50">
+                            <input type="text" name="options[{{ $i }}][option_text]" value="{{ $opt->option_text }}" dir="auto" class="flex-1 px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:ring-1 focus:ring-primary/50">
                             <label class="flex items-center gap-1 text-xs text-gray-400 whitespace-nowrap cursor-pointer">
                                 <input type="checkbox" name="options[{{ $i }}][is_correct]" {{ $opt->is_correct ? 'checked' : '' }} class="w-4 h-4 rounded bg-white/5 border-white/20 text-success focus:ring-success/50 focus:ring-offset-0">
                                 {{ __('quiz.correct') }}
@@ -181,7 +182,7 @@
                 </div>
                 <div>
                     <label class="block text-xs font-medium text-gray-400 mb-1">{{ __('quiz.word_order_sentence') }} *</label>
-                    <input type="text" name="correct_answer"
+                    <input type="text" name="correct_answer" dir="auto"
                            value="{{ old('correct_answer', $question->correct_answer) }}"
                            class="w-full px-3 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all"
                            placeholder="{{ __('quiz.word_order_sentence_placeholder') }}">
@@ -207,7 +208,7 @@ function addOption() {
         <div class="flex flex-col gap-2 option-row bg-white/[0.02] p-3 rounded-lg border border-white/5">
             <div class="flex items-center gap-2">
                 <input type="text" name="options[${optionCount}][label]" value="${label}" class="w-12 px-2 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm text-center focus:outline-none focus:ring-1 focus:ring-primary/50">
-                <input type="text" name="options[${optionCount}][option_text]" placeholder="Option text" class="flex-1 px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:ring-1 focus:ring-primary/50">
+                <input type="text" name="options[${optionCount}][option_text]" placeholder="Option text" dir="auto" class="flex-1 px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:ring-1 focus:ring-primary/50">
                 <label class="flex items-center gap-1 text-xs text-gray-400 whitespace-nowrap cursor-pointer">
                     <input type="checkbox" name="options[${optionCount}][is_correct]" class="w-4 h-4 rounded bg-white/5 border-white/20 text-success focus:ring-success/50 focus:ring-offset-0">
                     Correct
