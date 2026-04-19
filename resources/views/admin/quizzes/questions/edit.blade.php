@@ -107,7 +107,7 @@
                         </div>
                         <div class="flex items-center gap-2">
                             @if($opt->option_image)
-                                <img src="{{ Storage::url($opt->option_image) }}" class="h-6 w-6 object-cover rounded">
+                                <img src="{{ '/files/' . $opt->option_image }}" class="h-6 w-6 object-cover rounded">
                             @endif
                             <input type="file" name="options[{{ $i }}][option_image]" accept="image/*" class="w-full text-xs text-gray-400 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-[10px] file:bg-white/10 file:text-white hover:file:bg-white/20 mt-1">
                         </div>

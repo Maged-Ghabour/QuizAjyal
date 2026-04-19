@@ -8,7 +8,7 @@
                    id="img-opt-{{ $option->id }}"
                    class="sr-only">
             @if($option->option_image)
-                <img src="{{ Storage::url($option->option_image) }}" alt="{{ $option->option_text }}" class="w-full h-32 object-cover rounded-lg mb-2">
+                <img src="{{ '/files/' . $option->option_image }}" alt="{{ $option->option_text }}" class="w-full h-32 object-cover rounded-lg mb-2">
             @endif
             <div class="text-center">
                 <span class="text-sm font-medium text-gray-300 group-hover:text-white transition-colors">{{ $option->option_text }}</span>

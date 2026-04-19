@@ -82,7 +82,7 @@
                         {{-- Question image --}}
                         @if($question->question_image)
                             <div class="my-4">
-                                <img src="{{ Storage::url($question->question_image) }}" alt="Question image" class="rounded-xl max-h-64 object-contain mx-auto">
+                                <img src="{{ '/files/' . $question->question_image }}" alt="Question image" class="rounded-xl max-h-64 object-contain mx-auto">
                             </div>
                         @endif
 
