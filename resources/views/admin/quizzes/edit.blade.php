@@ -424,34 +424,37 @@ function addSubQuestion(defaultType = 'mcq') {
     const container = document.getElementById('sub-questions-container');
     const idx = subQCount++;
     const html = `
-    <div class="sub-q-card bg-white/[0.03] border border-white/10 rounded-xl p-4 space-y-3" data-sq-idx="${idx}">
-        <div class="flex items-center justify-between">
-            <span class="text-xs font-semibold text-gray-400">${sqSubQLabel} ${idx + 1}</span>
-            <button type="button" onclick="this.closest('.sub-q-card').remove()" class="p-1 text-gray-500 hover:text-danger">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+    <div class="sub-q-card bg-white/[0.03] border border-white/10 rounded-xl p-5 space-y-4" data-sq-idx="${idx}">
+        <div class="flex items-center justify-between pb-2 border-b border-white/10">
+            <span class="text-sm font-bold text-accent">${sqSubQLabel} ${idx + 1}</span>
+            <button type="button" onclick="this.closest('.sub-q-card').remove()" class="p-1 px-2 text-xs bg-danger/10 text-danger hover:bg-danger hover:text-white rounded transition-colors">
+                حذف
             </button>
         </div>
-        <div class="grid grid-cols-3 gap-2">
-            <div class="col-span-2">
-                <label class="block text-[10px] text-gray-500 mb-1">${sqQTextLbl} *</label>
-                <textarea name="sub_questions[${idx}][sub_question_text]" rows="2" required
-                          placeholder="${sqTextPh}"
-                          class="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-xs focus:outline-none focus:ring-1 focus:ring-accent/50 resize-none"></textarea>
+        
+        <div class="grid grid-cols-2 gap-4">
+            <div>
+                <label class="block text-xs font-medium text-gray-400 mb-1">${sqQTypeLbl} *</label>
+                <select name="sub_questions[${idx}][type]" onchange="toggleSubQFields(this, ${idx})"
+                        class="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-xl text-white text-sm focus:outline-none focus:ring-1 focus:ring-accent/50 appearance-none cursor-pointer">
+                    ${buildTypeOptions(defaultType, idx)}
+                </select>
             </div>
             <div>
-                <label class="block text-[10px] text-gray-500 mb-1">${sqPtsLabel} *</label>
+                <label class="block text-xs font-medium text-gray-400 mb-1">${sqPtsLabel} *</label>
                 <input type="number" name="sub_questions[${idx}][points]" value="1" min="1" required
-                       class="w-full px-2 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-xs focus:outline-none focus:ring-1 focus:ring-accent/50">
+                       class="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-xl text-white text-sm focus:outline-none focus:ring-1 focus:ring-accent/50">
             </div>
         </div>
+
         <div>
-            <label class="block text-[10px] text-gray-500 mb-1">${sqQTypeLbl} *</label>
-            <select name="sub_questions[${idx}][type]" onchange="toggleSubQFields(this, ${idx})"
-                    class="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-xs focus:outline-none focus:ring-1 focus:ring-accent/50 appearance-none cursor-pointer">
-                ${buildTypeOptions(defaultType, idx)}
-            </select>
+            <label class="block text-xs font-medium text-gray-400 mb-1">${sqQTextLbl} *</label>
+            <textarea name="sub_questions[${idx}][sub_question_text]" rows="2" required
+                      placeholder="${sqTextPh}"
+                      class="w-full px-3 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white text-sm focus:outline-none focus:ring-1 focus:ring-accent/50 resize-none"></textarea>
         </div>
-        <div class="sub-q-answer" data-sq="${idx}">
+        
+        <div class="sub-q-answer pt-2" data-sq="${idx}">
             ${buildSubQAnswer(idx, defaultType)}
         </div>
     </div>`;
@@ -460,21 +463,21 @@ function addSubQuestion(defaultType = 'mcq') {
 
 function buildSubQAnswer(idx, type) {
     if (type === 'mcq') {
-        return `<div class="space-y-2">
+        return `<div class="space-y-3">
             <div class="flex items-center justify-between">
-                <span class="text-[10px] text-gray-500">${sqOptionsLbl}</span>
-                <button type="button" onclick="addSubQOption(${idx})" class="text-[10px] text-accent hover:opacity-80">${sqAddOpt}</button>
+                <span class="text-xs font-medium text-gray-400">${sqOptionsLbl}</span>
+                <button type="button" onclick="addSubQOption(${idx})" class="text-xs text-accent hover:opacity-80">${sqAddOpt}</button>
             </div>
-            <div id="sub-q-opts-${idx}" class="space-y-1.5">
+            <div id="sub-q-opts-${idx}" class="space-y-2">
                 ${[0,1,2,3].map(j => `
                 <div class="flex items-center gap-2 sub-q-opt-row">
                     <input type="text" name="sub_questions[${idx}][options][${j}][label]" value="${String.fromCharCode(65+j)}"
-                           class="w-10 px-2 py-1.5 bg-white/5 border border-white/10 rounded text-white text-xs text-center focus:outline-none">
+                           class="w-10 px-2 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm text-center focus:outline-none">
                     <input type="text" name="sub_questions[${idx}][options][${j}][option_text]" placeholder="${sqOptPh}"
-                           class="flex-1 px-2 py-1.5 bg-white/5 border border-white/10 rounded text-white text-xs focus:outline-none">
-                    <label class="flex items-center gap-1 text-[10px] text-gray-400 whitespace-nowrap cursor-pointer">
+                           class="flex-1 px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:outline-none">
+                    <label class="flex items-center gap-1.5 text-xs text-gray-400 whitespace-nowrap cursor-pointer px-1">
                         <input type="checkbox" name="sub_questions[${idx}][options][${j}][is_correct]"
-                               class="w-3.5 h-3.5 rounded bg-white/5 border-white/20 text-success">
+                               class="w-4 h-4 rounded bg-white/5 border-white/20 text-success">
                         ${sqCorrect}
                     </label>
                 </div>`).join('')}
@@ -482,18 +485,18 @@ function buildSubQAnswer(idx, type) {
         </div>`;
     } else if (type === 'fill_blank') {
         return `<div>
-            <label class="block text-[10px] text-gray-500 mb-1">${sqCorAnsLbl} *</label>
+            <label class="block text-xs font-medium text-gray-400 mb-1">${sqCorAnsLbl} *</label>
             <input type="text" name="sub_questions[${idx}][correct_answer]" placeholder="${sqAnswerPh}"
-                   class="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-xs focus:outline-none focus:ring-1 focus:ring-accent/50">
+                   class="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-xl text-white text-sm focus:outline-none focus:ring-1 focus:ring-accent/50">
         </div>`;
     } else if (type === 'true_false') {
         return `<div>
-            <label class="block text-[10px] text-gray-500 mb-1">${sqCorAnsLbl} *</label>
-            <div class="grid grid-cols-2 gap-2">
-                <label class="flex items-center justify-center py-2 border border-white/10 rounded-lg text-xs text-gray-300 cursor-pointer has-[:checked]:bg-success/15 has-[:checked]:border-success/40">
+            <label class="block text-xs font-medium text-gray-400 mb-2">${sqCorAnsLbl} *</label>
+            <div class="grid grid-cols-2 gap-3">
+                <label class="flex items-center justify-center py-2.5 border border-white/10 rounded-xl text-sm text-gray-300 cursor-pointer has-[:checked]:bg-success/15 has-[:checked]:border-success/40 transition-colors">
                     <input type="radio" name="sub_questions[${idx}][correct_answer]" value="true" class="sr-only"> ${sqTrueLbl}
                 </label>
-                <label class="flex items-center justify-center py-2 border border-white/10 rounded-lg text-xs text-gray-300 cursor-pointer has-[:checked]:bg-danger/15 has-[:checked]:border-danger/40">
+                <label class="flex items-center justify-center py-2.5 border border-white/10 rounded-xl text-sm text-gray-300 cursor-pointer has-[:checked]:bg-danger/15 has-[:checked]:border-danger/40 transition-colors">
                     <input type="radio" name="sub_questions[${idx}][correct_answer]" value="false" class="sr-only"> ${sqFalseLbl}
                 </label>
             </div>
@@ -510,16 +513,16 @@ function addSubQOption(idx) {
     const html = `
     <div class="flex items-center gap-2 sub-q-opt-row">
         <input type="text" name="sub_questions[${idx}][options][${j}][label]" value="${String.fromCharCode(65+j)}"
-               class="w-10 px-2 py-1.5 bg-white/5 border border-white/10 rounded text-white text-xs text-center focus:outline-none">
+               class="w-10 px-2 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm text-center focus:outline-none">
         <input type="text" name="sub_questions[${idx}][options][${j}][option_text]" placeholder="${sqOptPh}"
-               class="flex-1 px-2 py-1.5 bg-white/5 border border-white/10 rounded text-white text-xs focus:outline-none">
-        <label class="flex items-center gap-1 text-[10px] text-gray-400 whitespace-nowrap cursor-pointer">
+               class="flex-1 px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:outline-none">
+        <label class="flex items-center gap-1.5 text-xs text-gray-400 whitespace-nowrap cursor-pointer px-1">
             <input type="checkbox" name="sub_questions[${idx}][options][${j}][is_correct]"
-                   class="w-3.5 h-3.5 rounded bg-white/5 border-white/20 text-success">
+                   class="w-4 h-4 rounded bg-white/5 border-white/20 text-success">
             ${sqCorrect}
         </label>
-        <button type="button" onclick="this.closest('.sub-q-opt-row').remove()" class="p-0.5 text-gray-500 hover:text-danger">
-            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        <button type="button" onclick="this.closest('.sub-q-opt-row').remove()" class="p-1 text-gray-500 hover:text-danger">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
         </button>
     </div>`;
     container.insertAdjacentHTML('beforeend', html);
