@@ -116,7 +116,7 @@
                         </span>
                         <span class="text-xs text-gray-500">{{ $question->points }} {{ __('quiz.pts') }}</span>
                     </div>
-                    <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div class="flex items-center gap-1 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
                         <a href="{{ route('admin.quizzes.questions.edit', [$quiz, $question]) }}" class="p-1.5 rounded-lg hover:bg-primary/10 text-gray-500 hover:text-primary transition-colors">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                         </a>
@@ -686,7 +686,7 @@ document.addEventListener('change', function(e) {
                 previewContainer.innerHTML = `
                     <div class="relative group">
                         <img src="${evt.target.result}" class="h-14 w-auto rounded object-contain bg-dark/50 p-1 border border-white/10 shadow-sm" style="max-width:100px;">
-                        <button type="button" class="absolute -top-1.5 -right-1.5 bg-danger text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-all transform scale-90 hover:scale-110 shadow-md" onclick="removeImagePreview(this)">
+                        <button type="button" class="absolute -top-1.5 -right-1.5 bg-danger text-white rounded-full p-0.5 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-all transform scale-90 hover:scale-110 shadow-md" onclick="removeImagePreview(this)">
                             <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                         </button>
                     </div>
